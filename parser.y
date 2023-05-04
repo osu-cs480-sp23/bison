@@ -25,6 +25,30 @@ extern int yylex();
 
 %type <num> expression
 
+%left PLUS MINUS
+%left TIMES DIVIDEDBY
+
+%start program
+
 %%
+
+program
+    : program statement
+    | statement
+    ;
+
+statement
+    : IDENTIFIER EQUALS expression SEMICOLON
+    ;
+
+expression
+    : IDENTIFIER
+    | NUMBER { $$ = $1; }
+    | LPAREN expression RPAREN { $$ = $2; }
+    | expression PLUS expression { $$ = $1 + $3; }
+    | expression MINUS expression { $$ = $1 - $3; }
+    | expression TIMES expression { $$ = $1 * $3; }
+    | expression DIVIDEDBY expression { $$ = $1 / $3; }
+    ;
 
 %%
