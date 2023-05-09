@@ -18,12 +18,12 @@ int have_err = 0;
 YYSTYPE yylval;
 yypstate* pstate;
 
-#define PUSH_TOKEN(category) do {
-    int s = yypush_parse(pstate, category, &yylval);
-    if (s != YYPUSH_MORE) {
-        yypstate_delete(pstate);
-        return s;
-    }
+#define PUSH_TOKEN(category) do {                     \
+    int s = yypush_parse(pstate, category, &yylval);  \
+    if (s != YYPUSH_MORE) {                           \
+        yypstate_delete(pstate);                      \
+        return s;                                     \
+    }                                                 \
 } while (0)
 
 %}
