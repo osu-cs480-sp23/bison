@@ -2,12 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "hash.h"
+#include "parser_push.h"
 
 struct hash* symbols;
 
 void yyerror(const char* err);
 
 extern int yylex();
+extern yypstate* pstate;
 %}
 
 %union {
@@ -29,6 +31,9 @@ extern int yylex();
 %left TIMES DIVIDEDBY
 
 %start program
+
+%define api.push-pull push
+%define api.pure full
 
 %%
 
@@ -67,7 +72,8 @@ void yyerror(const char* err) {
 
 int main() {
     symbols = hash_create();
-    if (!yyparse()) {
+    pstate = yypstate_new();
+    if (!yylex()) {
         printf("Symbol values:\n");
         struct hash_iter* iter = hash_iter_create(symbols);
         while (hash_iter_has_next(iter)) {

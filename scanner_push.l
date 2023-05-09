@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "parser.h"
+#include "parser_push.h"
 
 int num_ops = 0;
 int num_nums = 0;
@@ -14,6 +14,18 @@ int num_ids = 0;
 void save_id(char*);
 
 int have_err = 0;
+
+YYSTYPE yylval;
+yypstate* pstate;
+
+#define PUSH_TOKEN(category) do {
+    int s = yypush_parse(pstate, category, &yylval);
+    if (s != YYPUSH_MORE) {
+        yypstate_delete(pstate);
+        return s;
+    }
+} while (0)
+
 %}
 
 %option noyywrap
@@ -27,25 +39,32 @@ int have_err = 0;
     // save_id(yytext);
     yylval.str = malloc((yyleng + 1) * sizeof(char));
     strncpy(yylval.str, yytext, yyleng + 1);
-    return IDENTIFIER;
+    // return IDENTIFIER;
+    // int s = yypush_parse(pstate, IDENTIFIER, &yylval);
+    // if (s != YYPUSH_MORE) {
+    //     yypstate_delete(pstate);
+    //     return s;
+    // }
+    PUSH_TOKEN(IDENTIFIER);
 }
 
 [0-9]+("."[0-9]+)? {
     // num_nums++;
     yylval.num = atof(yytext);
     // printf("== yytext: %s\tnum: %f\n", yytext, yylval.num);
-    return NUMBER;
+    // return NUMBER;
+    PUSH_TOKEN(NUMBER);
 }
 
-"="     return (yylval.category = EQUALS);
-"+"     return (yylval.category = PLUS);
-"-"     return (yylval.category = MINUS);
-"*"     return (yylval.category = TIMES);
-"/"     return (yylval.category = DIVIDEDBY);
+"="     PUSH_TOKEN(EQUALS);
+"+"     PUSH_TOKEN(PLUS);
+"-"     PUSH_TOKEN(MINUS);
+"*"     PUSH_TOKEN(TIMES);
+"/"     PUSH_TOKEN(DIVIDEDBY);
 
-";"     return (yylval.category = SEMICOLON);
-"("     return (yylval.category = LPAREN);
-")"     return (yylval.category = RPAREN);
+";"     PUSH_TOKEN(SEMICOLON);
+"("     PUSH_TOKEN(LPAREN);
+")"     PUSH_TOKEN(RPAREN);
 
 . {
     have_err = 1;
@@ -55,10 +74,13 @@ int have_err = 0;
 }
 
 <<EOF>> {
-    if (have_err) {
-        return 1;
-    }
-    return 0;
+    // if (have_err) {
+    //     return 1;
+    // }
+    // return 0;
+    int s = yypush_parse(pstate, 0, NULL);
+    yypstate_delete(pstate);
+    return s;
 }
 
 %%

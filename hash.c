@@ -3,6 +3,7 @@
  * simplicity, the hash table is set up to store float values.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -146,6 +147,8 @@ void hash_insert(struct hash* hash, char* key, float value) {
   assert(hash);
   assert(key);
 
+  // printf("== hash_insert(): %s %f\n", key, value);
+
   /*
    * Double capacity of hash table if needed.
    */
@@ -191,6 +194,7 @@ void hash_insert(struct hash* hash, char* key, float value) {
     } else {
       cur->next = NULL;
     }
+    // printf("  -- hash_insert() %s at idx: %d\n", key, idx);
     hash->table[idx] = cur;
     hash->num_elems++;
   }
@@ -259,7 +263,9 @@ float hash_get(struct hash* hash, char* key) {
    */
   struct association* cur = hash->table[idx];
   while (cur != NULL) {
+    // printf(" -- hash_get() comparison: %s %s\n", key, cur->key);
     if (!strcmp(key, cur->key)) {
+      // printf("== hash_get(): %s %f\n", key, cur->value);
       return cur->value;
     }
     cur = cur->next;
