@@ -44,17 +44,15 @@ program
 
 statement
     : IDENTIFIER EQUALS expression SEMICOLON {
-        // printf("== ID: %s\texpr: %f\n", $1, $3);
         hash_insert(symbols, $1, $3);
-        // free($1);
+        free($1);
     }
     ;
 
 expression
     : IDENTIFIER {
         $$ = hash_get(symbols, $1);
-        // printf("== ID: %s\tvalue: %f\n", $1, $$);
-        // free($1);
+        free($1);
     }
     | NUMBER { $$ = $1; }
     | LPAREN expression RPAREN { $$ = $2; }

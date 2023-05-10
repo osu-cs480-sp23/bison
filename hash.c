@@ -3,7 +3,6 @@
  * simplicity, the hash table is set up to store float values.
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -65,6 +64,15 @@ struct hash* hash_create() {
 
 
 /*
+ * This function frees all memory allocated to an association structure.
+ */
+void _association_free(struct association* assoc) {
+  free(assoc->key);
+  free(assoc);
+}
+
+
+/*
  * Free the memory associated with a hash table.
  */
 void hash_free(struct hash* hash) {
@@ -77,7 +85,7 @@ void hash_free(struct hash* hash) {
     struct association* next, * cur = hash->table[i];
     while (cur != NULL) {
       next = cur->next;
-      free(cur);
+      _association_free(cur);
       cur = next;
     }
   }
@@ -131,7 +139,7 @@ void _hash_resize(struct hash* hash) {
       struct association* tmp = cur;
       hash_insert(hash, cur->key, cur->value);
       cur = cur->next;
-      free(tmp);
+      _association_free(tmp);
     }
   }
 
@@ -141,13 +149,25 @@ void _hash_resize(struct hash* hash) {
 
 
 /*
+ * This function allocates an association structure and initializes it with
+ * a given key and value.  Memory is allocated and a copy of the key is made.
+ */
+struct association* _association_create(char* key, float value) {
+  struct association* assoc = malloc(sizeof(struct association));
+  int l = strlen(key);
+  assoc->key = malloc((l + 1) * sizeof(char));
+  strncpy(assoc->key, key, l + 1);
+  assoc->value = value;
+  return assoc;
+}
+
+
+/*
  * Inserts (or updates) a value with a given key into a hash table.
  */
 void hash_insert(struct hash* hash, char* key, float value) {
   assert(hash);
   assert(key);
-
-  // printf("== hash_insert(): %s %f\n", key, value);
 
   /*
    * Double capacity of hash table if needed.
@@ -186,15 +206,12 @@ void hash_insert(struct hash* hash, char* key, float value) {
      * a new association structure for it and put the new association at the
      * head of the chain for its bucket.
      */
-    cur = malloc(sizeof(struct association));
-    cur->key = key;
-    cur->value = value;
+    cur = _association_create(key, value);
     if (hash->table[idx] != NULL) {
       cur->next = hash->table[idx];
     } else {
       cur->next = NULL;
     }
-    // printf("  -- hash_insert() %s at idx: %d\n", key, idx);
     hash->table[idx] = cur;
     hash->num_elems++;
   }
@@ -238,7 +255,7 @@ void hash_remove(struct hash* hash, char* key) {
       hash->table[idx] = cur->next;
     }
 
-    free(cur);
+    _association_free(cur);
     hash->num_elems--;
   }
 }
@@ -263,9 +280,7 @@ float hash_get(struct hash* hash, char* key) {
    */
   struct association* cur = hash->table[idx];
   while (cur != NULL) {
-    // printf(" -- hash_get() comparison: %s %s\n", key, cur->key);
     if (!strcmp(key, cur->key)) {
-      // printf("== hash_get(): %s %f\n", key, cur->value);
       return cur->value;
     }
     cur = cur->next;

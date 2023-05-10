@@ -51,7 +51,6 @@ yypstate* pstate;
 [0-9]+("."[0-9]+)? {
     // num_nums++;
     yylval.num = atof(yytext);
-    // printf("== yytext: %s\tnum: %f\n", yytext, yylval.num);
     // return NUMBER;
     PUSH_TOKEN(NUMBER);
 }
