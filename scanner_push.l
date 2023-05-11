@@ -16,10 +16,12 @@ void save_id(char*);
 int have_err = 0;
 
 YYSTYPE yylval;
+YYLTYPE yyloc;
 yypstate* pstate;
 
 #define PUSH_TOKEN(category) do {                     \
-    int s = yypush_parse(pstate, category, &yylval);  \
+    yyloc.first_line = yyloc.last_line = yylineno;    \
+    int s = yypush_parse(pstate, category, &yylval, &yyloc);  \
     if (s != YYPUSH_MORE) {                           \
         yypstate_delete(pstate);                      \
         return s;                                     \
@@ -69,7 +71,7 @@ yypstate* pstate;
     have_err = 1;
     fprintf(stderr, "Invalid symbol on line %d: %s\n", yylineno, yytext);
     yylval.category = yytext[0];
-    return yytext[0];
+    PUSH_TOKEN(yytext[0]);
 }
 
 <<EOF>> {
@@ -77,7 +79,7 @@ yypstate* pstate;
     //     return 1;
     // }
     // return 0;
-    int s = yypush_parse(pstate, 0, NULL);
+    int s = yypush_parse(pstate, 0, NULL, NULL);
     yypstate_delete(pstate);
     return s;
 }

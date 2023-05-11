@@ -22,6 +22,7 @@ extern int yylex();
 %token <num> NUMBER
 %token <category> EQUALS PLUS MINUS TIMES DIVIDEDBY
 %token <category> SEMICOLON LPAREN RPAREN
+%token <category> IF ELSE COLON
 
 %type <num> expression
 
@@ -38,10 +39,20 @@ program
     ;
 
 statement
+    : assignmentStatement
+    | ifStatement
+    ;
+
+assignmentStatement
     : IDENTIFIER EQUALS expression SEMICOLON {
         hash_insert(symbols, $1, $3);
         free($1);
     }
+    ;
+
+ifStatement
+    : IF expression COLON statement
+    | IF expression COLON statement ELSE COLON statement
     ;
 
 expression
